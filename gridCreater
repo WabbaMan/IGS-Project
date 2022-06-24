@@ -1,0 +1,46 @@
+#The commented stuff is because it doesn't work yet, not an error just need to know the dimentions and pixles of the photo.
+#To run it, pass the arrays of keyvalue points to the convertDataTOCoords(xCoords, yCoords) function.
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def gridCreater(xCoords, yCoords):
+    X = np.array(xCoords)
+    Y = np.array(yCoords)
+    # Plotting point using scatter method
+    plt.scatter(X,Y)
+    plt.gca().invert_yaxis()
+    plt.show()
+
+# Need to take all of the first numbers in each entry, and add them to a list, then same for second number in each entry 
+def convertDataToCoords(xCoords, yCoords):
+    xSorted = []
+    ySorted = []
+ 
+#    for y in yCoords:
+ #       print(y)
+  #      if y >= 0 and y <= 80:
+   #         ySorted.append(40)
+    #    elif y > 80 and y <= 160:
+     #       ySorted.append(120)
+      #  elif y > 160 and y <= 240:
+       #     ySorted.append(200)
+        #elif y > 240 and y <= 320:
+#            ySorted.append(280)
+ #       else: 
+  #          ySorted.append(360)
+   #     print(y)
+    #    print("==========")
+
+#    for x in xCoords:
+ #       if x >= 0 and x <= 87.5:
+  #          xSorted.append(43.75)
+   #     elif x > 87.5 and y <= 175:
+    #        xSorted.append(131.25)
+     #   elif x > 175 and y <= 262.5:
+      #      xSorted.append(218.75)
+       # elif x > 262.5 and y <= 350:
+        #    xSorted.append(306.25)
+#        else: 
+ #           xSorted.append(656.25)
+    gridCreater(xSorted, ySorted)
