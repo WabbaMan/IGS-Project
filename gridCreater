@@ -12,19 +12,15 @@ def takephoto(max_array, min_array):
     date = datetime.now().strftime("%Y_%m_%d-%I-%M-%S_%p")
     imagePath = r'C:\Users\JoeGilligan\IGS_Project\IGS-Project\photoFolder'
 
-    #The first part of the the Try function is the code to take a photo, the second part is what will happen if there is a problem taking and storing the photo
-
-        #creates a variable called camera and makes it record what the webcam is displaying
+    #creates a variable called camera and makes it record what the webcam is displaying
     camera = cv2.VideoCapture(0)
 
-        #Creates a new variable called image and tells it to record what camera has stored in it at that moment
+    #Creates a new variable called image and tells it to record what camera has stored in it at that moment
     return_value, image = camera.read()
 
-        #Saves image to imagePath then deletes the variable camera then prints "Photo done"
-        #cv2.imwrite(os.path.join(imagePath, 'opencv'+str(date)+'.png'), image)
     del(camera)
         
-        #Calls the next function, colourDetection, passing the variables through to that function
+    #Calls the next function, colourDetection, passing the variables through to that function
     print("Photo Done")
     colourDetection(max_array, min_array, date, image)
 
@@ -42,8 +38,6 @@ def colourDetection(max_array, min_array,date,image):
         lower = np.array(lower, dtype = "uint8")
         upper = np.array(upper, dtype = "uint8")
 
-    #Error catching portion of function, will try to perform colour detection, if it fails it will print "Failure to perform colour detection"
-
     #Changes the colour from the image from RGB to HSV for better colour detection
     #Currently reads a test image from the drive, in future this will be the image passed from takePhoto
     image = cv2.imread(filePath)
@@ -52,15 +46,10 @@ def colourDetection(max_array, min_array,date,image):
     #Creates a mask, by scanning the image for colour that lies outside the range and raplacing it with black, then creates the output by overlaying the mask on the original image
     mask = cv2.inRange(hsv,lower,upper)
     output = cv2.bitwise_and(image, image, mask = mask)
-
-        #Shows the output (only necesary for testing)
-        #cv2.imshow("images",np.hstack([image,output]))
-        #cv2.waitKey(0)
-        
-        #Calls the next function passing the variable 'date' and 'image' through
-    print("Colour detection done")  
+    
+    #Calls the next function passing the variable 'date' and 'image' through
+    print("Colour detection done")
     blobDetection(date,image,output)
-     
 
 def blobDetection(date,image,output):
 
@@ -81,9 +70,7 @@ def blobDetection(date,image,output):
     params.filterByConvexity = False
     params.filterByInertia = False
 
-    #Error catching portion of function, it will try to perfrom the blob detection, if it fails, it will print an error to the command line
-
-        #Uses the parameters from above to create a detector then applies that to the image to find the keypoints, the centre of each of the detected blobs
+    #Uses the parameters from above to create a detector then applies that to the image to find the keypoints, the centre of each of the detected blobs
     detector = cv2.SimpleBlobDetector_create(params)
     keyPoints = detector.detect(output)
 
@@ -115,8 +102,7 @@ def blobDetection(date,image,output):
     cv2.waitKey(0)
 
     print("Blob detection done")
-    convertDataToCoords(xCoords, yCoords, image)
-
+    convertCoords(xCoords, yCoords, 0)
 
 def dist2(p1, p2):
     return (p1[0]-p2[0])**2 + (p1[1]-p2[1])**2
@@ -142,85 +128,33 @@ def fuse(points, d):
             ret.append((point[0], point[1]))
     return ret
 
-def convertDataToCoords(xCoords, yCoords, image):
-    xSorted = []
-    ySorted = []
- 
- #Not a good method for predicting coords of good plugs, too susceptible to change in the original photo
-    for y in yCoords:
-        if y >= 0 and y <= 175:
-            ySorted.append(150)
-        elif y > 175 and y <= 275:
-            ySorted.append(230)
-        elif y > 275 and y <= 350:
-            ySorted.append(310)
-        elif y > 350 and y <= 450:
-            ySorted.append(400)
-        elif y > 450 and y <= 525:
-            ySorted.append(480)
-        elif y > 525  and y <= 600:
-            ySorted.append(575)
-        elif y > 600 and y <= 700:
-            ySorted.append(650)
-        elif y > 700 and y <= 775:
-            ySorted.append(732.5)
-        elif y > 775 and y <= 860:
-            ySorted.append(830)
-        elif y > 860 and y <= 950:
-            ySorted.append(900)
-        elif y > 950 and y <= 1050:
-            ySorted.append(1000)
-        elif y > 1050 and y <= 1150:
-            ySorted.append(1090)
-        elif y > 1150 and y <= 1200:
-            ySorted.append(1175)
-        elif y > 1200 and y <= 1300:
-            ySorted.append(1270)
-        elif y > 1300 and y <= 1400:
-            ySorted.append(1350)
-        elif y > 1400 and y <= 1500:
-            ySorted.append(1450)
-        elif y > 1500 and y <= 1600:
-            ySorted.append(1550)
-        elif y > 1600 and y <= 1700:
-            ySorted.append(1640)
-        elif y > 1700 and y <= 1750:
-            ySorted.append(1725)
-        else:
-            ySorted.append(1800)
 
- 
-    for x in xCoords:
-        if x >= 0 and x <= 150:
-            xSorted.append(130)
-        elif x > 150 and x <= 250:
-            xSorted.append(230)
-        elif x > 250 and x <= 350:
-            xSorted.append(330)
-        elif x > 350 and x <= 450:
-            xSorted.append(430)
-        elif x > 450 and x <= 550:
-            xSorted.append(530)
-        elif x > 550 and x <= 650:
-            xSorted.append(630)
-        elif x > 650 and x <= 750:
-            xSorted.append(730)
-        else: 
-            xSorted.append(830)   
+def convertCoords(xCoords, yCoords, size):
+    if size == 0 :
+        xList = [(0, 150, 130), (150, 250, 230), (250, 350, 330), (350, 450, 430), (450, 550, 530), (550, 650, 630), (650, 750, 730), (750, 850, 830)]
+        yList = [(0, 175, 150), (175, 275, 230), (275, 350, 310), (350, 450, 400), (450, 525, 480), (525, 600, 575), (600, 700, 650), (700, 775, 732.5), (775, 860, 830), (860, 950, 900), (950, 1050, 1000), (1050, 1150, 1090), (1150, 1200, 1175), (1200, 1300, 1270), (1300, 1400, 1350), (1400, 1500, 1450), (1500, 1600, 1550), (1600, 1700, 1640), (1700, 1750, 1725), (1750, 1850, 1800)]
+    elif size == 1:
+        xList = [()]
+        yList = [()]
     
-    X = list(xSorted)
-    Y = list(ySorted)
-    
+    xSorted = sort(xCoords, xList)
+    ySorted = sort(yCoords, yList)
+
     XYTotal = []
     loopCounter = 0
-    for i in xCoords:
-        XYTotal.append((X[loopCounter],Y[loopCounter]))
+    for i in xSorted:
+        XYTotal.append((xSorted[loopCounter],ySorted[loopCounter]))
         loopCounter = loopCounter + 1
     XYTotal = list(dict.fromkeys(XYTotal))
-    
-    print("Number of succesfull plugs =", len(XYTotal))
-
     emptyPlugFinder(XYTotal)
+
+def sort(coords, items):
+    result = []
+    for coord in coords:
+        for item in items:
+            if item[0] < coord < item[1]:
+                result.append(item[2])
+    return result
 
 def emptyPlugFinder(XYTotal):
     emptyPlugX = []
@@ -242,7 +176,7 @@ def emptyPlugFinder(XYTotal):
             found = False
     print("Number of failed plugs: " + str(len(emptyPlugX)))
     print((emptyPlugX,emptyPlugY))
-    sendDataToDatabase(emptyPlugX, emptyPlugY)
+    #sendDataToDatabase(emptyPlugX, emptyPlugY)
 
 def sendDataToDatabase(emptyPlugX, emptyPlugY):
     conn = pyodbc.connect("DSN=TestConnection;UID=SYSDBA;PWD=masterkey")
