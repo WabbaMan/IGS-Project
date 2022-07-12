@@ -6,14 +6,14 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import pyodbc
 
-def takephoto(max_array, min_array):
+def takephoto(camNumber):
 
     #This creates two variables, the first one 'date' that records the exact date and time when the photo was taken and the second one 'imagePath' that records where the image should be stored to
     date = datetime.now().strftime("%Y_%m_%d-%I-%M-%S_%p")
     imagePath = r'C:\Users\JoeGilligan\IGS_Project\IGS-Project\photoFolder'
 
     #creates a variable called camera and makes it record what the webcam is displaying
-    camera = cv2.VideoCapture(0)
+    camera = cv2.VideoCapture(camNumber)
 
     #Creates a new variable called image and tells it to record what camera has stored in it at that moment
     return_value, image = camera.read()
@@ -22,17 +22,14 @@ def takephoto(max_array, min_array):
         
     #Calls the next function, colourDetection, passing the variables through to that function
     print("Photo Done")
-    colourDetection(max_array, min_array, date, image)
+    return image, date
 
-    
-def colourDetection(max_array, min_array,date,image):
+def colourDetection(image):
     #Current filePath only there for testing, later will use image from takePhoto
     filePath = r'C:\Users\JoeGilligan\IGS_Project\IGS-Project\photoFolder\testImage.png' 
     
     #Sets the upper and lower bondaries for the colour detection 
-    boundaries = [
-        ((max_array),(min_array))
-    ]
+    boundaries = [(([40,40,40]),([70,255,255]))]
 
     for (lower,upper) in boundaries:
         lower = np.array(lower, dtype = "uint8")
@@ -49,7 +46,7 @@ def colourDetection(max_array, min_array,date,image):
     
     #Calls the next function passing the variable 'date' and 'image' through
     print("Colour detection done")
-    blobDetection(date,image,output)
+    return output, image
 
 def blobDetection(date,image,output):
 
@@ -79,17 +76,13 @@ def blobDetection(date,image,output):
     yCoords = []
 
     #Using a for loop, we add the each list by going through the keypoints, adding the y coordinates to yCoords and the x coordinates to xCoords
-    loopCounter = 0
-    for i in keyPoints:
-        xCoords.append(keyPoints[loopCounter].pt[0])
-        yCoords.append(keyPoints[loopCounter].pt[1])
-        loopCounter = loopCounter + 1
+    for i in range(len(keyPoints)):
+        xCoords.append(keyPoints[i].pt[0])
+        yCoords.append(keyPoints[i].pt[1])
 
     XYCoords = []
-    loopCounter = 0
-    for i in xCoords:
-        XYCoords.append((xCoords[loopCounter],yCoords[loopCounter]))
-        loopCounter = loopCounter + 1
+    for i in range(len(xCoords)):
+        XYCoords.append((xCoords[i],yCoords[i]))
     XYTotal = fuse(XYCoords,50)
         
     #Creates a new image called im_with_keypoints which is the original image with the keypoints superimposed on top of it and then saves this image to the imagePath
@@ -102,7 +95,7 @@ def blobDetection(date,image,output):
     cv2.waitKey(0)
 
     print("Blob detection done")
-    convertCoords(xCoords, yCoords, 0)
+    return xCoords, yCoords
 
 def dist2(p1, p2):
     return (p1[0]-p2[0])**2 + (p1[1]-p2[1])**2
@@ -128,26 +121,35 @@ def fuse(points, d):
             ret.append((point[0], point[1]))
     return ret
 
-
-def convertCoords(xCoords, yCoords, size):
+def convertCoords(xCoords, yCoords, size, camNumber):
+    # There are 3 different sizes of tray, and each size has its own parameters for how to plugs are aligned
+    # The formatting for the alignment is poaint in range (min, max, value point is changed to)
     if size == 0 :
         xList = [(0, 150, 130), (150, 250, 230), (250, 350, 330), (350, 450, 430), (450, 550, 530), (550, 650, 630), (650, 750, 730), (750, 850, 830)]
         yList = [(0, 175, 150), (175, 275, 230), (275, 350, 310), (350, 450, 400), (450, 525, 480), (525, 600, 575), (600, 700, 650), (700, 775, 732.5), (775, 860, 830), (860, 950, 900), (950, 1050, 1000), (1050, 1150, 1090), (1150, 1200, 1175), (1200, 1300, 1270), (1300, 1400, 1350), (1400, 1500, 1450), (1500, 1600, 1550), (1600, 1700, 1640), (1700, 1750, 1725), (1750, 1850, 1800)]
     elif size == 1:
         xList = [()]
         yList = [()]
+    elif size == 2:
+        xList = [()]
+        yList = [()]
     
+    # call function sort with the list of plug points and the list of how to format those points
     xSorted = sort(xCoords, xList)
     ySorted = sort(yCoords, yList)
 
-    XYTotal = []
-    loopCounter = 0
-    for i in xSorted:
-        XYTotal.append((xSorted[loopCounter],ySorted[loopCounter]))
-        loopCounter = loopCounter + 1
-    XYTotal = list(dict.fromkeys(XYTotal))
-    emptyPlugFinder(XYTotal)
-
+    if camNumber == 0:
+        # we need to add the sorted points together into a list
+        XYTotal = []
+        # for each value in both lists
+        for i in range(len(xSorted)):
+        # add them to a new list in the format (X,Y)
+            XYTotal.append((xSorted[i],ySorted[i]))
+        XYTotal = list(dict.fromkeys(XYTotal))
+        return XYTotal
+    else:
+        return xSorted, ySorted
+# 
 def sort(coords, items):
     result = []
     for coord in coords:
@@ -156,16 +158,22 @@ def sort(coords, items):
                 result.append(item[2])
     return result
 
-def emptyPlugFinder(XYTotal):
+def emptyPlugFinder(XYTotal, size):
     emptyPlugX = []
     emptyPlugY = []
-    xList = [130, 230, 330, 430, 530, 630, 730, 830]
-    yList = [150, 230, 310, 400, 480, 575, 650, 732.5, 830, 900, 1000, 1090, 1175, 1270, 1350, 1450, 1550, 1640, 1725, 1800]
+    if size == 0 :
+        xList = [130, 230, 330, 430, 530, 630, 730, 830]
+        yList = [150, 230, 310, 400, 480, 575, 650, 732.5, 830, 900, 1000, 1090, 1175, 1270, 1350, 1450, 1550, 1640, 1725, 1800]
+    elif size == 1:
+        xList = []
+        yList = []
+    elif size == 2:
+        xList = []
+        yList = []
     found = False
     for i in xList:
         for s in yList:    
             checkingPoint = [i, s]
-            print(checkingPoint)
             for o in XYTotal:
                 if o == (checkingPoint[0],checkingPoint[1]):
                     found = True
@@ -175,13 +183,25 @@ def emptyPlugFinder(XYTotal):
                 emptyPlugY.append(checkingPoint[1])
             found = False
     print("Number of failed plugs: " + str(len(emptyPlugX)))
-    print((emptyPlugX,emptyPlugY))
-    #sendDataToDatabase(emptyPlugX, emptyPlugY)
+    return emptyPlugX, emptyPlugY
 
-def sendDataToDatabase(emptyPlugX, emptyPlugY):
+def sendData(plugXValue, plugYValue):
     conn = pyodbc.connect("DSN=TestConnection;UID=SYSDBA;PWD=masterkey")
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO testTable (badPlugX, badPlugY) VALUES (?, ?);", emptyPlugX, emptyPlugY)
-    cursor.execute("SELECT * FROM testTable")
-    
-takephoto([40,40,40],[70,255,255])
+    for n in range(len(plugXValue)):
+        cursor.execute("INSERT INTO badPlugTable(badPlugX, badPlugY) VALUES (?, ?)", plugXValue[n], plugYValue[n])
+    conn.commit()
+
+def startProgram(camNumber, size):
+    image, date = takephoto(camNumber)
+    output, image = colourDetection(image)
+    xCoords, yCoords = blobDetection(date, image, output)
+    if camNumber == 0:
+        XYTotal = convertCoords(xCoords, yCoords, size, camNumber)
+        plugXValue, plugYValue = emptyPlugFinder(XYTotal, size)
+    else:
+        plugXValue, plugYValue = convertCoords(xCoords, yCoords, size, camNumber)
+    sendData(plugXValue, plugYValue)
+
+
+startProgram(0, 0)
