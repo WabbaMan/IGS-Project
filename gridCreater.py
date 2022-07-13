@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 import numpy as np
 import cv2
 import os
@@ -13,14 +14,14 @@ def takephoto(camNumber):
     imagePath = r'C:\Users\JoeGilligan\IGS_Project\IGS-Project\photoFolder'
 
     #creates a variable called camera and makes it record what the webcam is displaying
-    camera = cv2.VideoCapture(camNumber)
+    ######camera = cv2.VideoCapture(camNumber)
 
     #Creates a new variable called image and tells it to record what camera has stored in it at that moment
-    return_value, image = camera.read()
+    ######return_value, image = camera.read()
 
-    del(camera)
+    ######del(camera)
         
-    #Calls the next function, colourDetection, passing the variables through to that function
+    image = NULL
     print("Photo Done")
     return image, date
 
@@ -84,6 +85,13 @@ def blobDetection(date,image,output):
     for i in range(len(xCoords)):
         XYCoords.append((xCoords[i],yCoords[i]))
     XYTotal = fuse(XYCoords,50)
+
+    fusedXCoords = []
+    fusedYCoords = []
+
+    for i in XYTotal:
+        fusedXCoords.append(i[0])
+        fusedYCoords.append(i[1])
         
     #Creates a new image called im_with_keypoints which is the original image with the keypoints superimposed on top of it and then saves this image to the imagePath
     im_with_keypoints = cv2.drawKeypoints(output, keyPoints, np.array([]), (255,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
@@ -95,7 +103,7 @@ def blobDetection(date,image,output):
     cv2.waitKey(0)
 
     print("Blob detection done")
-    return xCoords, yCoords
+    return fusedXCoords, fusedYCoords
 
 def dist2(p1, p2):
     return (p1[0]-p2[0])**2 + (p1[1]-p2[1])**2
@@ -185,11 +193,14 @@ def emptyPlugFinder(XYTotal, size):
     print("Number of failed plugs: " + str(len(emptyPlugX)))
     return emptyPlugX, emptyPlugY
 
-def sendData(plugXValue, plugYValue):
+def sendData(plugXValue, plugYValue, camNumber):
     conn = pyodbc.connect("DSN=TestConnection;UID=SYSDBA;PWD=masterkey")
     cursor = conn.cursor()
     for n in range(len(plugXValue)):
-        cursor.execute("INSERT INTO badPlugTable(badPlugX, badPlugY) VALUES (?, ?)", plugXValue[n], plugYValue[n])
+        if camNumber == 0:
+            cursor.execute("INSERT INTO badPlugTable(badPlugX, badPlugY) VALUES (?, ?)", plugXValue[n], plugYValue[n])
+        else:
+            cursor.execute("INSERT INTO donorPlugTable(donorPlugX, donorPlugY) VALUES (?, ?)", plugXValue[n], plugYValue[n])
     conn.commit()
 
 def startProgram(camNumber, size):
@@ -201,7 +212,6 @@ def startProgram(camNumber, size):
         plugXValue, plugYValue = emptyPlugFinder(XYTotal, size)
     else:
         plugXValue, plugYValue = convertCoords(xCoords, yCoords, size, camNumber)
-    sendData(plugXValue, plugYValue)
-
+    sendData(plugXValue, plugYValue, camNumber)
 
 startProgram(0, 0)
