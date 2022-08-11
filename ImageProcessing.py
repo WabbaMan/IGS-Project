@@ -32,7 +32,7 @@ def colourDetection(image):
     ###
     #Uncomment these for testing
     ###
-    #filePath = r'/home/pi/Files_for_RbPi/photoFolder/testImage.png'
+    filePath = r'/home/pi/Files_for_RbPi/photoFolder/testImage.png'
     ###
 
 
@@ -46,7 +46,7 @@ def colourDetection(image):
     ###########
     #Uncomment for testing
     ###########
-    #image = cv2.imread(filePath)
+    image = cv2.imread(filePath)
     ###########
 
     #Changes the colour from the image from RGB to HSV for better colour detection
@@ -145,14 +145,6 @@ def fuse(points, d):
             ret.append((point[0], point[1]))
     return ret
 
-def sort(coords, items):
-    result = []
-    for coord in coords:
-        for item in items:
-            if item[0] < coord < item[1]:
-                result.append(item[2])
-    return result
-
 def combine(xList, yList):
     # we need to add the sorted points together into a list
     XYTotal = []
@@ -160,7 +152,6 @@ def combine(xList, yList):
     for i in range(len(xList)):
     # add them to a new list in the format (X,Y)
         XYTotal.append([xList[i],yList[i]])
-    print(XYTotal)
     return XYTotal
 
 def sizeDetection(xCoords):
@@ -181,15 +172,44 @@ def sizeDetection(xCoords):
                     ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
                     ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
                     ,[000,000],[000,000],[000,000],[000,000]]
+    #########
+    #for testing
+    positions = [[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]]
+    #########
     return positions
 
 def getPositions(plugXValue, plugYValue, positions):
-    
+    positionsStatus = []
+    found = False
     XYTotal = combine(plugXValue, plugYValue)
     XYTotal.sort(key = lambda x: x[0])
     XYTotal.sort(key = lambda x: x[1])
-    
-    return positions
+
+    for x in positions:
+        for y in XYTotal:
+            if x == y:
+                positionsStatus.append(1)
+                found = True
+                break                
+        if found == False:
+            positionsStatus.append(0)
+        found = False
+    return positionsStatus
 
 def startProgram():
     #This function takes no input and returns the photo taken with the camera + the datetime of when the photo was taken
@@ -199,34 +219,7 @@ def startProgram():
     #This function takes the image of isolated pixels and collects nearby pixels to create accurate represenations of where the plants are
     xCoords, yCoords = blobDetection(date, output)
     #This function looks at the number of plugs in the tray and returns a size based on that 
-    size = sizeDetection(xCoords)
-    positions = getPositions(plugXValue, plugYValue, size)
-    sender.sendPositions(positions)
-
-startProgram()
-###############################################################################################
-#Old Functions not used anymore
-
-def emptyPlugFinder(XYTotal, size):
-    emptyPlugX = []
-    emptyPlugY = []
-    if size == 0 :
-        xList = [130, 230, 330, 430, 530, 630, 730, 830]
-        yList = [150, 230, 310, 400, 480, 575, 650, 732.5, 830, 900, 1000, 1090, 1175, 1270, 1350, 1450, 1550, 1640, 1725, 1800]
-    elif size == 1:
-        xList = []
-        yList = []
-    found = False
-    for i in xList:
-        for s in yList:    
-            checkingPoint = [i, s]
-            for o in XYTotal:
-                if o == (checkingPoint[0],checkingPoint[1]):
-                    found = True
-                    break
-            if found == False:
-                emptyPlugX.append(checkingPoint[0])
-                emptyPlugY.append(checkingPoint[1])
-            found = False
-    print("Number of failed plugs: " + str(len(emptyPlugX)))
-    return emptyPlugX, emptyPlugY
+    positions = sizeDetection(xCoords)
+    #This function compares the coordinates we get from the blobs to the corrdinates 
+    positionsStatus = getPositions(xCoords, yCoords, positions)
+    sender.sendPositions(positionsStatus)
