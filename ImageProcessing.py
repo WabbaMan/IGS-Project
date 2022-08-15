@@ -15,7 +15,7 @@ import time
 def takephoto():
     #This creates two variables, the first one 'date' that records the exact date and time when the photo was taken and the second one 'imagePath' that records where the image should be stored to
     date = datetime.now().strftime("%Y_%m_%d-%I-%M-%S_%p")
-    imagePath = r'/home/pi/Files_for_RbPi/photoFolder'
+    imagePath = r'C:\Users\JoeGilligan\IGS_Project\IGS-Project\Files_for_RbPi\photoFolder'
 
     #creates a variable called camera and makes it record what the webcam is displaying
     camera = cv2.VideoCapture(0)
@@ -32,7 +32,7 @@ def colourDetection(image):
     ###
     #Uncomment these for testing
     ###
-    filePath = r'/home/pi/Files_for_RbPi/photoFolder/testImage.png'
+    filePath = r'C:\Users\JoeGilligan\IGS_Project\IGS-Project\Files_for_RbPi\photoFolder\testImage.png'
     ###
 
 
@@ -64,7 +64,7 @@ def colourDetection(image):
 def blobDetection(date,output):
     #We use simpleBlobDetection from opencv to find the green plants in the photo
     #Creates a new variable,'imagePath' which is where to store the blobDetection photos to for future use
-    imagePath = r'/home/pi/Files_for_RbPi/photoFolder'
+    imagePath = r'C:\Users\JoeGilligan\IGS_Project\IGS-Project\Files_for_RbPi\photoFolder'
 
     #Sets the parameters of the SimpleBlobDectection function
     params = cv2.SimpleBlobDetector_Params()
@@ -97,6 +97,7 @@ def blobDetection(date,output):
         XYCoords.append((xCoords[i],yCoords[i]))
     XYTotal = fuse(XYCoords,40)
 
+    #This prints out the coordinates of each blob that has been detected, useful for when setting the coordinate boundries 
     print("=========================================")
     print("These are the pixel coordinates of each blob")
     print(" ")
@@ -110,15 +111,6 @@ def blobDetection(date,output):
         fusedXCoords.append(i[0])
         fusedYCoords.append(i[1])
 
-    ###
-    #Don't need this when running program
-    #Creates a new image called im_with_keypoints which is the original image with the keypoints superimposed on top of it and then saves this image to the imagePath
-    #im_with_keypoints = cv2.drawKeypoints(output, keyPoints, np.array([]), (255,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-    #finalImage = np.hstack([im_with_keypoints,image])
-    #cv2.imwrite(os.path.join(imagePath, 'opencvBD' + date + '.png'), finalImage)
-    ###
-
-    print("Blob detection done")
     return fusedXCoords, fusedYCoords
 
 def dist2(p1, p2):
@@ -194,7 +186,7 @@ def sizeDetection(xCoords):
     return positions
 
 def getPositions(plugXValue, plugYValue, positions):
-    positionsStatus = []
+    positionsStatus = ""
     found = False
     XYTotal = combine(plugXValue, plugYValue)
     XYTotal.sort(key = lambda x: x[0])
@@ -203,12 +195,17 @@ def getPositions(plugXValue, plugYValue, positions):
     for x in positions:
         for y in XYTotal:
             if x == y:
-                positionsStatus.append(1)
+                positionsStatus = positionsStatus + "1,"
                 found = True
                 break                
         if found == False:
-            positionsStatus.append(0)
+            positionsStatus = positionsStatus + "0,"
         found = False
+    print("=============")
+    print(positionsStatus)
+    print("=============")
+    positionsStatus.removesuffix(",")
+    print(positionsStatus)
     return positionsStatus
 
 def startProgram():
@@ -223,3 +220,8 @@ def startProgram():
     #This function compares the coordinates we get from the blobs to the corrdinates 
     positionsStatus = getPositions(xCoords, yCoords, positions)
     sender.sendPositions(positionsStatus)
+
+####
+#Uncomment for testing
+startProgram()
+####
