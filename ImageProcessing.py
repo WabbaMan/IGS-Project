@@ -1,5 +1,6 @@
 from ctypes import sizeof
 import time
+from tkinter import Image
 import numpy as np
 import cv2
 import os
@@ -15,7 +16,7 @@ import time
 def takephoto():
     #This creates two variables, the first one 'date' that records the exact date and time when the photo was taken and the second one 'imagePath' that records where the image should be stored to
     date = datetime.now().strftime("%Y_%m_%d-%I-%M-%S_%p")
-    imagePath = r'C:\Users\JoeGilligan\IGS_Project\IGS-Project\Files_for_RbPi\photoFolder'
+    imagePath = r'/home/pi/photoFolder/image1.jpg'
 
     #creates a variable called camera and makes it record what the webcam is displaying
     camera = cv2.VideoCapture(0)
@@ -25,6 +26,7 @@ def takephoto():
 
     del(camera)
 
+
     print("Photo Done")
     return image, date
 
@@ -32,7 +34,7 @@ def colourDetection(image):
     ###
     #Uncomment these for testing
     ###
-    filePath = r'C:\Users\JoeGilligan\IGS_Project\IGS-Project\Files_for_RbPi\photoFolder\testImage.png'
+    #filePath = r'/home/pi/photoFolder/testImage.png'
     ###
 
 
@@ -46,7 +48,7 @@ def colourDetection(image):
     ###########
     #Uncomment for testing
     ###########
-    image = cv2.imread(filePath)
+    #image = cv2.imread(filePath)
     ###########
 
     #Changes the colour from the image from RGB to HSV for better colour detection
@@ -61,10 +63,10 @@ def colourDetection(image):
     print("Colour detection done")
     return output
 
-def blobDetection(date,output):
+def blobDetection(date,output,image):
     #We use simpleBlobDetection from opencv to find the green plants in the photo
     #Creates a new variable,'imagePath' which is where to store the blobDetection photos to for future use
-    imagePath = r'C:\Users\JoeGilligan\IGS_Project\IGS-Project\Files_for_RbPi\photoFolder'
+    imagePath = r'/home/pi/photoFolder/'
 
     #Sets the parameters of the SimpleBlobDectection function
     params = cv2.SimpleBlobDetector_Params()
@@ -74,7 +76,7 @@ def blobDetection(date,output):
     params.filterByColor = 0
     params.filterByCircularity = False
     params.filterByArea = True
-    params.minArea = 50
+    params.minArea = 5
     params.maxArea = 5000    
     params.filterByConvexity = False
     params.filterByInertia = False
@@ -95,15 +97,15 @@ def blobDetection(date,output):
     XYCoords = []
     for i in range(len(xCoords)):
         XYCoords.append((xCoords[i],yCoords[i]))
-    XYTotal = fuse(XYCoords,40)
+    XYTotal = fuse(XYCoords,15)
 
-    #This prints out the coordinates of each blob that has been detected, useful for when setting the coordinate boundries 
-    print("=========================================")
-    print("These are the pixel coordinates of each blob")
-    print(" ")
-    for x in XYTotal:
-        print(x)
-    print("=========================================") 
+    im_with_keypoints = cv2.drawKeypoints(output, keyPoints, np.array([]), (255,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    finalImage = np.hstack([im_with_keypoints,image])
+    cv2.imwrite(os.path.join(imagePath, 'opencvBD' + date + '.png'), finalImage)
+
+    cv2.imshow("image", finalImage)
+    cv2.waitKey(0)
+
     fusedXCoords = []
     fusedYCoords = []
 
@@ -148,10 +150,11 @@ def combine(xList, yList):
 
 def sizeDetection(xCoords):
     if(len(xCoords) <= 40):
-      positions = [[142,240],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[430.5,232],[000,000],[000,000]
-                    ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                    ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                    ,[000,000],[000,000],[230.5,385.5],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[439,387.3]]
+        positions = [[131,142],[175,143],[220,144],[265,145],[309,146],[353,147],[397,148],[454.6,152.8],
+                     [135,182],[179,18300],[223,184],[267,185],[311,186],[355,187],[399,188],[444,192.8],
+                     [139,222],[183,223],[227,224],[271,225],[315,226],[359,227],[403,228],[447,233],
+                     [144,262],[188,263],[232,264],[276,265],[320,266],[364,267],[408,268],[450,273],
+                     [148.5,302.2],[192.5,303],[236.5,304],[280.5,305],[324.5,306],[368.5,307],[412.5,308],[447.2,310.5]]
     elif(len(xCoords) <= 104):
         positions = [[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
                     ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
@@ -166,22 +169,22 @@ def sizeDetection(xCoords):
                     ,[000,000],[000,000],[000,000],[000,000]]
     #########
     #for testing
-    positions = [[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]]
+    #positions = [[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
+                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]]
     #########
     return positions
 
@@ -192,20 +195,21 @@ def getPositions(plugXValue, plugYValue, positions):
     XYTotal.sort(key = lambda x: x[0])
     XYTotal.sort(key = lambda x: x[1])
 
+    print("=========================================")
+    print("These are the pixel coordinates of each blob")
+    print(" ")
+    for x in XYTotal:
+        print(x)
+    print("=========================================") 
     for x in positions:
         for y in XYTotal:
-            if x == y:
+            if (x[0] > y[0] - 22 and x[0] < y[0] + 22) and (x[1] > y[1] - 20 and x[1] < y[0] + 20):
                 positionsStatus = positionsStatus + "1,"
                 found = True
                 break                
         if found == False:
             positionsStatus = positionsStatus + "0,"
         found = False
-    print("=============")
-    print(positionsStatus)
-    print("=============")
-    positionsStatus.removesuffix(",")
-    print(positionsStatus)
     return positionsStatus
 
 def startProgram():
@@ -214,14 +218,9 @@ def startProgram():
     #This function goes over the image, and creates a mask with only the pixels in the colour range showing, it returns the image with the islolated green pixels
     output = colourDetection(image)
     #This function takes the image of isolated pixels and collects nearby pixels to create accurate represenations of where the plants are
-    xCoords, yCoords = blobDetection(date, output)
+    xCoords, yCoords = blobDetection(date, output,image)
     #This function looks at the number of plugs in the tray and returns a size based on that 
     positions = sizeDetection(xCoords)
     #This function compares the coordinates we get from the blobs to the corrdinates 
     positionsStatus = getPositions(xCoords, yCoords, positions)
     sender.sendPositions(positionsStatus)
-
-####
-#Uncomment for testing
-startProgram()
-####
