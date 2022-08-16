@@ -103,8 +103,8 @@ def blobDetection(date,output,image):
     finalImage = np.hstack([im_with_keypoints,image])
     cv2.imwrite(os.path.join(imagePath, 'opencvBD' + date + '.png'), finalImage)
 
-    cv2.imshow("image", finalImage)
-    cv2.waitKey(0)
+    #cv2.imshow("image", finalImage)
+    #cv2.waitKey(0)
 
     fusedXCoords = []
     fusedYCoords = []
@@ -151,7 +151,7 @@ def combine(xList, yList):
 def sizeDetection(xCoords):
     if(len(xCoords) <= 40):
         positions = [[131,142],[175,143],[220,144],[265,145],[309,146],[353,147],[397,148],[454.6,152.8],
-                     [135,182],[179,18300],[223,184],[267,185],[311,186],[355,187],[399,188],[444,192.8],
+                     [135,182],[179,183],[223,184],[267,185],[311,186],[355,187],[399,188],[444,192.8],
                      [139,222],[183,223],[227,224],[271,225],[315,226],[359,227],[403,228],[447,233],
                      [144,262],[188,263],[232,264],[276,265],[320,266],[364,267],[408,268],[450,273],
                      [148.5,302.2],[192.5,303],[236.5,304],[280.5,305],[324.5,306],[368.5,307],[412.5,308],[447.2,310.5]]
@@ -201,15 +201,20 @@ def getPositions(plugXValue, plugYValue, positions):
     for x in XYTotal:
         print(x)
     print("=========================================") 
-    for x in positions:
-        for y in XYTotal:
-            if (x[0] > y[0] - 22 and x[0] < y[0] + 22) and (x[1] > y[1] - 20 and x[1] < y[0] + 20):
+    for plugloc in positions:
+        for blobloc in XYTotal:
+            if ((plugloc[0] > blobloc[0] - 24) and (plugloc[0] < blobloc[0] + 24)) and ((plugloc[1] > blobloc[1] - 20) and (plugloc[1] < blobloc[1] + 20)):
+                #abs(plugloc[0] - blobloc[0]) <= 20
+            #if ((abs(plugloc[0] - blobloc[0]) <= 20) and (abs(plugloc[0] - blobloc[0]) <= 20)):
+                print(plugloc)
+                print(blobloc)
                 positionsStatus = positionsStatus + "1,"
                 found = True
                 break                
         if found == False:
             positionsStatus = positionsStatus + "0,"
         found = False
+    positionsStatus = "\n" + "\n".join(positionsStatus[i:i+16] for i in range(0, len(positionsStatus), 16))
     return positionsStatus
 
 def startProgram():
