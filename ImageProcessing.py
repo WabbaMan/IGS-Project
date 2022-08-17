@@ -103,18 +103,13 @@ def blobDetection(date,output,image):
     finalImage = np.hstack([im_with_keypoints,image])
     cv2.imwrite(os.path.join(imagePath, 'opencvBD' + date + '.png'), finalImage)
 
-    #cv2.imshow("image", finalImage)
-    #cv2.waitKey(0)
-
     fusedXCoords = []
     fusedYCoords = []
 
     for i in XYTotal:
         fusedXCoords.append(i[0])
         fusedYCoords.append(i[1])
-    for x in range(1):
-        fusedXCoords.append(142)
-        fusedYCoords.append(153)
+
     return fusedXCoords, fusedYCoords
 
 def dist2(p1, p2):
@@ -150,14 +145,16 @@ def combine(xList, yList):
         XYTotal.append([xList[i],yList[i]])
     return XYTotal
 
-def sizeDetection(xCoords, image):
+def sizeDetection(xCoords):
     if(len(xCoords) <= 40):
-        positions = [[131,142],[175,143],[220,144],[265,145],[309,146],[353,147],[397,148],[454.6,152.8],
-                     [135,182],[179,183],[223,184],[267,185],[311,186],[355,187],[399,188],[444,192.8],
-                     [139,222],[183,223],[227,224],[271,225],[315,226],[359,227],[403,228],[447,233],
-                     [144,262],[188,263],[232,264],[276,265],[320,266],[364,267],[408,268],[450,273],
-                     [148.5,302.2],[192.5,303],[236.5,304],[280.5,305],[324.5,306],[368.5,307],[412.5,308],[447.2,310.5]]
+        size = 1
+        positions = [[170, 127],[211,128],[257,132],[299,138],[344,131],[388,138],[429,135],[471,135],
+                     [167,170],[211,173],[257,172],[301,173],[341,175],[385,176],[427,174],[469,172],
+                     [168,213],[210,214],[254,214],[296,216],[339,214],[384,213],[426,210],[467,210],
+                     [170,250],[213,251],[256,251],[299,251],[341,254],[383,252],[426,253],[465,255],
+                     [164,291],[210,290],[253,291],[298,290],[339,292],[382,289],[424,289],[465,294]]
     elif(len(xCoords) <= 104):
+        size = 0
         positions = [[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
                     ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
                     ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
@@ -169,38 +166,11 @@ def sizeDetection(xCoords, image):
                     ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
                     ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
                     ,[000,000],[000,000],[000,000],[000,000]]
-    
-    path = r'C:\Users\JoeGilligan\IGS_Project\image.jpg'
-    image = cv2.imread(path)
-    for i in positions:
-        cv2.rectangle(image, ((i[0] - 22), (i[1] - 20)), ((i[0] + 22), (i[1] + 20)), (0,250,0), 3)
-    cv2.imshow('image', image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
 
-    #########
-    #for testing
-    #positions = [[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
-                #,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]]
-    #########
-    return positions
+    return positions, size
 
-def getPositions(plugXValue, plugYValue, positions):
-    positionsStatus = ""
+def getPositions(plugXValue, plugYValue, positions, size):
+    positionsStatus = str(size) + ","
     found = False
     XYTotal = combine(plugXValue, plugYValue)
     XYTotal.sort(key = lambda x: x[0])
@@ -211,21 +181,18 @@ def getPositions(plugXValue, plugYValue, positions):
     print(" ")
     for x in XYTotal:
         print(x)
-    print("=========================================") 
+    print("=========================================")
+
     for plugloc in positions:
         for blobloc in XYTotal:
-            if ((plugloc[0] > blobloc[0] - 24) and (plugloc[0] < blobloc[0] + 24)) and ((plugloc[1] > blobloc[1] - 20) and (plugloc[1] < blobloc[1] + 20)):
-                #abs(plugloc[0] - blobloc[0]) <= 20
-            #if ((abs(plugloc[0] - blobloc[0]) <= 20) and (abs(plugloc[0] - blobloc[0]) <= 20)):
-                print(plugloc)
-                print(blobloc)
-                positionsStatus = positionsStatus + "1,"
+            if ((plugloc[0] > blobloc[0] - 20) and (plugloc[0] < blobloc[0] + 20)) and ((plugloc[1] > blobloc[1] - 20) and (plugloc[1] < blobloc[1] + 20)):
+                positionsStatus += "1,"
                 found = True
-                break                
+                break
         if found == False:
-            positionsStatus = positionsStatus + "0,"
+            positionsStatus += "0,"
         found = False
-    positionsStatus = "\n" + "\n".join(positionsStatus[i:i+16] for i in range(0, len(positionsStatus), 16))
+    #positionsStatus = "\n" + "\n".join(positionsStatus[i:i+16] for i in range(0, len(positionsStatus), 16))
     return positionsStatus
 
 def startProgram():
@@ -236,9 +203,7 @@ def startProgram():
     #This function takes the image of isolated pixels and collects nearby pixels to create accurate represenations of where the plants are
     xCoords, yCoords = blobDetection(date, output,image)
     #This function looks at the number of plugs in the tray and returns a size based on that 
-    positions = sizeDetection(xCoords, image)
+    positions, size = sizeDetection(xCoords)
     #This function compares the coordinates we get from the blobs to the corrdinates 
-    positionsStatus = getPositions(xCoords, yCoords, positions)
+    positionsStatus = getPositions(xCoords, yCoords, positions, size)
     sender.sendPositions(positionsStatus)
-
-startProgram()
