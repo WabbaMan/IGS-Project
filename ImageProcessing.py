@@ -112,7 +112,9 @@ def blobDetection(date,output,image):
     for i in XYTotal:
         fusedXCoords.append(i[0])
         fusedYCoords.append(i[1])
-
+    for x in range(1):
+        fusedXCoords.append(142)
+        fusedYCoords.append(153)
     return fusedXCoords, fusedYCoords
 
 def dist2(p1, p2):
@@ -148,7 +150,7 @@ def combine(xList, yList):
         XYTotal.append([xList[i],yList[i]])
     return XYTotal
 
-def sizeDetection(xCoords):
+def sizeDetection(xCoords, image):
     if(len(xCoords) <= 40):
         positions = [[131,142],[175,143],[220,144],[265,145],[309,146],[353,147],[397,148],[454.6,152.8],
                      [135,182],[179,183],[223,184],[267,185],[311,186],[355,187],[399,188],[444,192.8],
@@ -167,6 +169,15 @@ def sizeDetection(xCoords):
                     ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
                     ,[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
                     ,[000,000],[000,000],[000,000],[000,000]]
+    
+    path = r'C:\Users\JoeGilligan\IGS_Project\image.jpg'
+    image = cv2.imread(path)
+    for i in positions:
+        cv2.rectangle(image, ((i[0] - 22), (i[1] - 20)), ((i[0] + 22), (i[1] + 20)), (0,250,0), 3)
+    cv2.imshow('image', image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
     #########
     #for testing
     #positions = [[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000],[000,000]
@@ -225,7 +236,9 @@ def startProgram():
     #This function takes the image of isolated pixels and collects nearby pixels to create accurate represenations of where the plants are
     xCoords, yCoords = blobDetection(date, output,image)
     #This function looks at the number of plugs in the tray and returns a size based on that 
-    positions = sizeDetection(xCoords)
+    positions = sizeDetection(xCoords, image)
     #This function compares the coordinates we get from the blobs to the corrdinates 
     positionsStatus = getPositions(xCoords, yCoords, positions)
     sender.sendPositions(positionsStatus)
+
+startProgram()
